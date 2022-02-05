@@ -38,7 +38,7 @@ public class AppManager : MonoBehaviour
 
     bool got_area_names = false;
     Task<bool> area_names_task;
-
+    Task<bool> user_info_task;
 
     // Start is called before the first frame update
     void Start()
@@ -64,6 +64,7 @@ public class AppManager : MonoBehaviour
         dragDistance = Screen.height * 15 / 100; //dragDistance is 15% height of the screen
 
         area_names_task = get_area_names();
+        user_info_task = get_user_info();
     }
     async Task<bool> get_area_names()
     {
@@ -79,6 +80,18 @@ public class AppManager : MonoBehaviour
         return false;
     }
 
+    async Task<bool> get_user_info()
+    {
+        var url = "api/get_my_info";
+        var response = await client.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            var resp = await response.Content.ReadAsStringAsync();
+            AppData.user = JsonConvert.DeserializeObject<User>(resp);
+            return true;
+        }
+        return false;
+    }
     void Update()
     {
 

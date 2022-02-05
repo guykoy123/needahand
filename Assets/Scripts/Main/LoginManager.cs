@@ -177,7 +177,6 @@ public class LoginManager : MonoBehaviour
         {
             string res = await response.Content.ReadAsStringAsync();
             AuthToken token = JsonConvert.DeserializeObject<AuthToken>(res);
-            AppData.username = username;
             return token;
         }
         else

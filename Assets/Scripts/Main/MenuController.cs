@@ -12,7 +12,6 @@ public class MenuController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        usernameText.text = AppData.username;
     }
 
     // Update is called once per frame

@@ -5,11 +5,10 @@ using System;
 
 public static class AppData
 {
-    public static string username;
-    public static int userID;
     public static AuthToken token;
+    public static User user;
     public static Dictionary<string, string> areaNamesDict;
-    public static readonly string APIaddress = "http://10.12.1.11/";
+    public static readonly string APIaddress = "http://10.12.1.61/";
     /*
      * workurl = "http://10.12.1.11/";
      * homeurl = "http://192.168.1.119/";
@@ -41,4 +40,13 @@ public class Post
     public string pk { get; set; }
     public string username { get; set; }
     public string area_name { get; set; }
+}
+
+public class User
+{
+    public string username { get; set; }
+    public string email { get; set; }
+    public string image { get; set; }
+    public int user { get; set; }
+
 }

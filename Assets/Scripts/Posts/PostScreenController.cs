@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 public class PostScreenController : MonoBehaviour
 {
     Post post;
@@ -17,10 +20,20 @@ public class PostScreenController : MonoBehaviour
     public GameObject OthersButtons;
 
     bool displayed_info = false;
+    bool my_post = false;
+
+    HttpClient client = new HttpClient();
+    Task<bool> deleteTask;
+
+    public HomeController homeScreen;
+    public ConfirmationController confirmation;
+    public EditController editScreen;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        client.BaseAddress = new System.Uri(AppData.APIaddress);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", AppData.token.get());
     }
 
     // Update is called once per frame
@@ -42,8 +55,9 @@ public class PostScreenController : MonoBehaviour
     public void SetPost(Post p)
     {
         post = p;
+        my_post = (post.username == AppData.user.username);
     }
-    void DisplayPost()
+    public void DisplayPost()
     {
         if (post.post_type == "rq")
         {
@@ -61,5 +75,55 @@ public class PostScreenController : MonoBehaviour
         date.text = post.date_posted.ToString("dd.MM.yy");
         content.text = post.content;
         area.text = "אזור: " + AppData.areaNamesDict[post.area];
+        if (my_post)
+        {
+            MyButtons.SetActive(true);
+            OthersButtons.SetActive(false);
+        }
+        else
+        {
+            MyButtons.SetActive(false);
+            OthersButtons.SetActive(true);
+        }
+    }
+
+    public void EditPost()
+    {
+        editScreen.gameObject.SetActive(true);
+        editScreen.SetPost(post);
+    }
+    public void DeletePost()
+    {
+        if (post != null)
+        {
+            string message = "האם אתה בטוח שאתה רוצה למחוק את הפוסט?";
+            confirmation.DisplayMessage(message, ConfirmDelete);
+
+        }
+        
+    }
+    public void ConfirmDelete(bool answer)
+    {
+        if (answer)
+        {
+            deleteTask = delete(post.pk);
+            homeScreen.ReloadPosts();
+            gameObject.SetActive(false);
+        }
+    }
+    async Task<bool> delete(string id)
+    {
+        string url = "api/delete_post";
+        var values = new Dictionary<string, string> { { "post_id", id } };
+        var content = new FormUrlEncodedContent(values);
+        var response = await client.PostAsync(url, content);
+        if (response.IsSuccessStatusCode == true)
+        {
+            Debug.Log("deleted post");
+            return true;
+        }
+        Debug.Log("failed to delet post " + response.StatusCode);
+        return false;
+        
     }
 }
