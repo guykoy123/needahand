@@ -14,6 +14,10 @@ public class MenuController : MonoBehaviour
     {
     }
 
+    public void OnEnable()
+    {
+        usernameText.text = AppData.user.username;
+    }
     // Update is called once per frame
     void Update()
     {

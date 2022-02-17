@@ -8,7 +8,7 @@ public static class AppData
     public static AuthToken token;
     public static User user;
     public static Dictionary<string, string> areaNamesDict;
-    public static readonly string APIaddress = "http://10.12.1.61/";
+    public static readonly string APIaddress = "http://10.12.1.78/";
     /*
      * workurl = "http://10.12.1.11/";
      * homeurl = "http://192.168.1.119/";
@@ -48,5 +48,5 @@ public class User
     public string email { get; set; }
     public string image { get; set; }
     public int user { get; set; }
-
+    
 }
