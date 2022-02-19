@@ -165,6 +165,7 @@ public class LoginManager : MonoBehaviour
 
     async Task<AuthToken> post_login(string username, string password)
     {
+        
         var values = new Dictionary<string, string>
         {
             { "username", username },
@@ -173,6 +174,7 @@ public class LoginManager : MonoBehaviour
 
         var content = new FormUrlEncodedContent(values);   
         var response = await client.PostAsync(AppData.APIaddress+"api/auth/token/login/", content);
+        LoginError.SetActive(true);
         if (response.IsSuccessStatusCode == true)
         {
             string res = await response.Content.ReadAsStringAsync();

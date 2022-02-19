@@ -25,10 +25,6 @@ public class ConfirmationController : MonoBehaviour
 
     public void DisplayMessage(string message, Action<bool> action)
     {
-        if(callback!= null)
-        {
-            Debug.LogError("couldn't open confirmation message, has one open from " + callback.ToString());
-        }
         panel.SetActive(true);
         confirmationMessage.text = message;
         callback = action;
