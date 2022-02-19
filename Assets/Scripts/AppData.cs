@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 public static class AppData
 {
@@ -13,6 +15,14 @@ public static class AppData
      * workurl = "http://10.12.1.11/";
      * homeurl = "http://192.168.1.119/";
      */
+
+     public static HttpClient client = new HttpClient();
+
+     public static void Setup(){
+        client.BaseAddress = new System.Uri(APIaddress);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", token.get());
+     }
+
 }
 
 public class AuthToken

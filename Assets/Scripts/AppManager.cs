@@ -43,6 +43,7 @@ public class AppManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        AppData.Setup();
         string path = Application.persistentDataPath; //change for production, needs to read token from AppData
         AppData.token = new AuthToken(File.ReadAllText(Application.persistentDataPath + "/token.auth"));
 
