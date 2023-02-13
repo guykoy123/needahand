@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Post
+  - Screen
   layers:
   - Default
   - TransparentFX

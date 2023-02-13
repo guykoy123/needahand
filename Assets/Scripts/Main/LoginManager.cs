@@ -41,11 +41,12 @@ public class LoginManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //TODO: add token check
         string path = Application.persistentDataPath;
+        Debug.Log(Application.persistentDataPath);
         if (File.Exists(path + "/token.auth"))
         {
-            AppData.token = new AuthToken(File.ReadAllText(Application.persistentDataPath + "/token.auth"));
+            AppData.token = new AuthToken(File.ReadAllText(path + "/token.auth"));
+            //TODO: check if token is valid
             SceneManager.LoadScene("MainScene");
         }
         
@@ -110,7 +111,7 @@ public class LoginManager : MonoBehaviour
                             usernameError.GetComponent<TMP_Text>().text = regErr.username[0][0];
                         }
                     }
-                    catch (NullReferenceException e){
+                    catch (NullReferenceException){
 
                     }
                     try
@@ -122,7 +123,7 @@ public class LoginManager : MonoBehaviour
                         }
                     }
 
-                    catch (NullReferenceException e)
+                    catch (NullReferenceException)
                     {
 
                     }
@@ -135,7 +136,7 @@ public class LoginManager : MonoBehaviour
                         }
                     }
 
-                    catch (NullReferenceException e)
+                    catch (NullReferenceException)
                     {
 
                     }
@@ -148,7 +149,7 @@ public class LoginManager : MonoBehaviour
                         }
                     }
 
-                    catch (NullReferenceException e)
+                    catch (NullReferenceException)
                     {
 
                     }
@@ -165,31 +166,41 @@ public class LoginManager : MonoBehaviour
 
     async Task<AuthToken> post_login(string username, string password)
     {
-        
+       
         var values = new Dictionary<string, string>
         {
             { "username", username },
             { "password", password }
         };
-
-        var content = new FormUrlEncodedContent(values);   
-        var response = await client.PostAsync(AppData.APIaddress+"api/auth/token/login/", content);
-        LoginError.SetActive(true);
-        if (response.IsSuccessStatusCode == true)
-        {
-            string res = await response.Content.ReadAsStringAsync();
-            AuthToken token = JsonConvert.DeserializeObject<AuthToken>(res);
-            return token;
+        try
+        {  
+            var content = new FormUrlEncodedContent(values);   
+            var response = await client.PostAsync(AppData.APIaddress+"api/auth/token/login/", content);
+            LoginError.SetActive(true);
+            if (response.IsSuccessStatusCode == true)
+            {
+                string res = await response.Content.ReadAsStringAsync();
+                AuthToken token = JsonConvert.DeserializeObject<AuthToken>(res);
+                return token;
+            }
+            else
+            {
+                //TODO: show message to user
+                Debug.Log(response.StatusCode);
+                return null;
+            }
         }
-        else
-        {
-            Debug.Log(response.StatusCode);
-            return null;
+        catch (System.Net.Sockets.SocketException ex){
+            Debug.LogError("coundn't log in. " + ex.ToString());
+            //TODO: show message to user
         }
+        return null;
+        
     }
 
     public void Login()
     {
+        Debug.Log("logging in");
         started_login_task = true;
         login_task = post_login(login_username.text, login_password.text);
     }

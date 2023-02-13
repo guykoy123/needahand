@@ -10,11 +10,9 @@ public static class AppData
     public static AuthToken token;
     public static User user;
     public static Dictionary<string, string> areaNamesDict;
-    public static readonly string APIaddress = "http://10.12.1.11/";
-    /*
-     * workurl = "http://10.12.1.11/";
-     * homeurl = "http://192.168.1.119/";
-     */
+    
+    //url of the server, currently set to the development server
+    public static readonly string APIaddress = "http://10.0.0.17:8000/";
 
      public static HttpClient client = new HttpClient();
 
@@ -59,4 +57,82 @@ public class User
     public string image { get; set; }
     public int user { get; set; }
     
+}
+
+public class Chat
+{
+    int chat_id;
+    Post post;
+    User user;
+    List<Message> Messages;
+    public Chat(int id,Post post,User user){
+        //contructor for loading from db
+        this.chat_id=id;
+        this.post=post;
+        this.user=user;
+    }
+
+    public int get_id(){
+        return this.chat_id;
+    }
+
+    public string GetUsername(){
+        return this.user.username;
+    }
+    public string GetPostTitle(){
+        return this.post.title;
+    }
+    public bool gotUnreadMessages(){
+        if (this.Messages == null){
+            return false;
+        }
+        for(int i=0; i<this.Messages.Count; i++){
+            if(this.Messages[i].GetAuthor()!=AppData.user){
+                if(!this.Messages[i].GetSeen()){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+public class Message
+{
+    int id;
+    User author;
+    string text;
+    DateTime time_sent;
+    bool seen=false;
+    Chat chat;
+    public Message(int id,User author,string text,DateTime time, bool seen, Chat chat)
+    {
+        //constructor for loading a message from db
+        this.id =id;
+        this.author=author;
+        this.text=text;
+        this.time_sent=time;
+        this.seen=seen;
+        this.chat=chat;
+    }
+
+    public string GetText(){
+        return this.text;
+    }
+    public DateTime GetTimeSent(){
+        return this.time_sent;
+    }
+    public bool GetSeen(){
+        return this.seen;
+    }
+    public void UpdateSeen(){
+        this.seen=true;
+    }
+    public string GetUsername(){
+        return author.username;
+    }
+    public User GetAuthor(){
+        return author;
+    }
+
 }
