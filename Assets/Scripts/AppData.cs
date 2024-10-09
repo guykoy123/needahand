@@ -7,12 +7,14 @@ using System.Net.Http.Headers;
 
 public static class AppData
 {
+    public static bool DebugFlag=true;
     public static AuthToken token;
     public static User user;
     public static Dictionary<string, string> areaNamesDict;
     
     //url of the server, currently set to the development server
-    public static readonly string APIaddress = "http://10.0.0.17:8000/";
+    public static readonly string APIaddress = "http://127.0.0.1:8000/";
+    public static readonly string WSaddress = "ws://127.0.0.1:8000/";
 
      public static HttpClient client = new HttpClient();
 
@@ -21,11 +23,12 @@ public static class AppData
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", token.get());
      }
 
+    
 }
 
 public class AuthToken
 {
-    public string auth_token;
+    protected string auth_token;
     public AuthToken(string token)
     {
         this.auth_token = token;
@@ -55,7 +58,7 @@ public class User
     public string username { get; set; }
     public string email { get; set; }
     public string image { get; set; }
-    public int user { get; set; }
+    public int pk { get; set; }
     
 }
 
@@ -66,7 +69,7 @@ public class Chat
     User user;
     List<Message> Messages;
     public Chat(int id,Post post,User user){
-        //contructor for loading from db
+        //constructor for loading from db
         this.chat_id=id;
         this.post=post;
         this.user=user;

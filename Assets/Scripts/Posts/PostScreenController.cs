@@ -5,6 +5,7 @@ using TMPro;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using UnityEngine.UI;
 public class PostScreenController : MonoBehaviour
 {
     Post post;
@@ -29,11 +30,14 @@ public class PostScreenController : MonoBehaviour
     public ConfirmationController confirmation;
     public EditController editScreen;
 
+    public ChatsMenuController ChatMenu;
+
     // Start is called before the first frame update
     void Start()
     {
         client.BaseAddress = new System.Uri(AppData.APIaddress);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", AppData.token.get());
+        ChatMenu = GameObject.FindObjectOfType<ChatsMenuController>();
     }
 
     // Update is called once per frame
@@ -84,6 +88,8 @@ public class PostScreenController : MonoBehaviour
         {
             MyButtons.SetActive(false);
             OthersButtons.SetActive(true);
+            Button ContactButton = OthersButtons.GetComponentInChildren<Button>();
+            ContactButton.onClick.AddListener(delegate { ChatMenu.StartNewChat(this.post); });
         }
     }
 

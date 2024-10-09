@@ -258,7 +258,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 171802639596635854}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 382250146}
+        m_TargetAssemblyTypeName: ChatController, Assembly-CSharp
+        m_MethodName: OpenChat
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &382250146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -271,10 +283,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27acbd5ec3697434c8baa03588247312, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  notificationDot: {fileID: 0}
-  username: {fileID: 0}
-  post_title: {fileID: 0}
-  user_pic: {fileID: 0}
+  chatScrollView: {fileID: 0}
+  messagePrefab: {fileID: 5490095518397947750, guid: 9c978980eae864440af4054f3e182593, type: 3}
 --- !u!1 &171802640140864314
 GameObject:
   m_ObjectHideFlags: 0

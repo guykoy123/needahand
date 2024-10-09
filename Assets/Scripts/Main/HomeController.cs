@@ -65,8 +65,15 @@ public class HomeController : MonoBehaviour
         var url = "api/get_user_posts";
         Debug.Log(client.BaseAddress + url);
         var response = await client.GetAsync(url);
-        var resp = await response.Content.ReadAsStringAsync();
-        List<Post> user_posts = JsonConvert.DeserializeObject<List<Post>>(resp);
-        return user_posts;
+        if(response.IsSuccessStatusCode){
+            var resp = await response.Content.ReadAsStringAsync();
+            List<Post> user_posts = JsonConvert.DeserializeObject<List<Post>>(resp);
+            return user_posts;
+        }
+        else{
+            Debug.Log("Error loading user's posts");
+            Debug.Log(response);
+            return null;
+        }
     }
 }
