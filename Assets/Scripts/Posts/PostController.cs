@@ -67,6 +67,12 @@ public class PostController : MonoBehaviour
         Time.text = post.date_posted.ToString("dd.MM.yy");
         Content.text = post.content;
         Area.text = "אזור: " + AppData.areaNamesDict[post.area];
+
+        //for debugging displays the post and user id
+        if (AppData.DebugFlag) {
+            Title.text  += "; "+ post.pk.ToString();
+            Author.text += "; " + post.author.ToString() ;
+        }
     }
     public void SetPost(Post p)
     {
