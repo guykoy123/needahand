@@ -5,7 +5,8 @@ using UnityEngine.UI;
 using TMPro;
 public class MessageController : MonoBehaviour
 {
-    TMP_Text messageText; 
+    public TMP_Text messageText; 
+    public TMP_Text timeSentText;
     Image messageBubble;
     Message message;
     // Start is called before the first frame update
@@ -21,7 +22,7 @@ public class MessageController : MonoBehaviour
     }
     public void SetMessage(Message msg){
         this.message=msg;
-        messageText = transform.GetComponentInChildren<TMP_Text>();
+        // messageText = transform.GetComponentInChildren<TMP_Text>();
         messageBubble = transform.GetComponent<Image>();
         if (AppData.user.pk == message.GetAuthor().pk){
             messageBubble.color = new Color(95,255,166); //my message color
@@ -31,6 +32,9 @@ public class MessageController : MonoBehaviour
         }
         messageText.text=message.GetText();
         messageText.ForceMeshUpdate();
+
+        timeSentText.text="sent: " + message.GetTimeSent().ToString("yyyy-MM-dd HH:mm");
+        timeSentText.ForceMeshUpdate();
         // Bounds textBounds = messageText.textBounds;
 
         // float size = messageBubble.GetComponent<Renderer> ().bounds.size.y;
@@ -40,10 +44,17 @@ public class MessageController : MonoBehaviour
         // messageBubble.transform.localScale = rescale;
 
     }
+    public void UpdateReceived(){
+        this.message.UpdateReceived();
+        //TODO: add visual que for own messages
 
+    }
     public void UpdateSeen(){
         this.message.UpdateSeen();
-        //TODO: add visual que
-        //TODO: update db
+        //TODO: add visual que for own messages
+        
+    }
+    public int GetAuthorID(){
+        return this.message.GetAuthor().pk;
     }
 }

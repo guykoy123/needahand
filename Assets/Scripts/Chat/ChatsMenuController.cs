@@ -28,6 +28,7 @@ public class ChatsMenuController : MonoBehaviour
     public GameObject MessagesContentView;
     public GameObject NoChatsMessage; //simple text to notify user that there are no active chats
     List<Chat> chats = new List<Chat>(); //list of all active chats
+    List<ChatController>  chatControllers = new List<ChatController>();
   
     HttpClient client = new HttpClient();
     bool got_post = false;
@@ -50,7 +51,11 @@ public class ChatsMenuController : MonoBehaviour
     public ChatInputController chatInput;
     public Task connectionTask;
 
-    WebSocket ws;
+
+    // holds messages for newly created chats(by other users)
+    // that ChatsMenuController hasn't create a Chat or ChatController object for
+    Queue<Dictionary<string,string>> messageQueue=new Queue<Dictionary<string, string>>(); 
+
     // Start is called before the first frame update
     void Start()
     {
@@ -61,27 +66,9 @@ public class ChatsMenuController : MonoBehaviour
         //load chat object prefab
         ChatPrefab=Resources.Load<GameObject>("Chat");
 
-        ws = new WebSocket(AppData.WSaddress);
-        ws.SetCookie(new WebSocketSharp.Net.Cookie("token",AppData.token.get()));
-        
-        Debug.Log("trying to connect");
-        ws.OnOpen += (sender, e) => {
-            Dictionary<string,string> d = new Dictionary<string, string>();
-            d.Add("type","test");
-            ws.Send(JsonConvert.SerializeObject(d));
-            Debug.Log("sent test");
-        };    
-        ws.OnMessage += (sender, e) => {
-            Debug.Log("received: "+e.Data);
-        };
-        ws.Connect();
-
         NoChatsMessage.SetActive(false);
         
-        /*ClientWebSocket webSocket = new ClientWebSocket();
-        CancellationToken cancellationToken = new CancellationToken();
-        WebSocketContext context = new WebSocketContext();
-        connectionTask = webSocket.ConnectAsync(new Uri(AppData.WSaddress),cancellationToken);*/
+        
     }
 
     // Update is called once per frame
@@ -123,9 +110,13 @@ public class ChatsMenuController : MonoBehaviour
         }
     }
 
-    public void OpenChatsMenuScreen(){
-        Debug.Log("opening chat menu");
-        ChatsMenuCanvas.SetActive(true);
+    public void OpenChatsMenuScreen(bool chat_reload_flag){
+        
+        if (!chat_reload_flag){
+            Debug.Log("opening chat menu");
+            ChatsMenuCanvas.GetComponent<Canvas>().enabled=true;
+            }
+        
         
         ActiveChats = DatabaseController.GetActiveChats();
         if (ActiveChats.Count>0){
@@ -142,7 +133,7 @@ public class ChatsMenuController : MonoBehaviour
             get_post_task = GetPostAsync(post_ids);
             get_users_task = GetUsersAsync(user_ids);
         }
-        else{
+        else if(!chat_reload_flag){
             NoChatsMessage.SetActive(true);
         }
 
@@ -161,15 +152,31 @@ public class ChatsMenuController : MonoBehaviour
         catch(Exception e){
             Debug.Log(e.ToString());
         }
+        //clear chatControllers list
+        chatControllers=new List<ChatController>();
         //reload new active chats
         for(int i=0;i<chats.Count;i++){
             GameObject t = Instantiate<GameObject>(ChatPrefab);
             t.transform.SetParent(ChatsContentView.transform,false);
-            t.GetComponent<ChatController>().SetChat(chats[i]);
+            ChatController controller = t.GetComponent<ChatController>();
+            controller.SetChat(chats[i]);
             Debug.Log("created chat: " + chats[i].get_id());
 
             if(CreatingNewChat && i == chats.Count-1){
-                t.GetComponent<ChatController>().OpenChat();
+                controller.OpenChat();
+            }
+
+            chatControllers.Add(controller);
+        }
+
+        //after creating all chats, push messages that chats missed
+        while(messageQueue.Count!=0){
+            Dictionary<string,string> message = messageQueue.Dequeue();
+            for(int j=0;j<chatControllers.Count;j++){
+                if(chatControllers[j].GetChat().GetPostID()==Int32.Parse(message["post"])){
+                    DateTime time_sent = DateTime.ParseExact(message["time_sent"], "yyyy-MM-dd HH:mm",System.Globalization.CultureInfo.InvariantCulture);
+                    chatControllers[j].ReceiveMessage(message["contents"],time_sent,Int32.Parse(message["packet_id"]));
+                }
             }
         }
     }
@@ -181,8 +188,10 @@ public class ChatsMenuController : MonoBehaviour
         //create request
         var url = "api/get_post_by_id";
         string id_list = "["+string.Join(",", id) +"]";
-        Dictionary<string, string> postData = new Dictionary<string, string>();
-        postData.Add("pk", id_list);
+        Dictionary<string, string> postData = new Dictionary<string, string>
+        {
+            { "pk", id_list }
+        };
         var data = new FormUrlEncodedContent(postData);
         //POST to server
         var response = await client.PostAsync(url, data);
@@ -206,8 +215,10 @@ public class ChatsMenuController : MonoBehaviour
         //create request
         var url = "api/get_user_by_id";
         string id_list = "["+string.Join(",", id) +"]";
-        Dictionary<string, string> POSTData = new Dictionary<string, string>();
-        POSTData.Add("pk", id_list);
+        Dictionary<string, string> POSTData = new Dictionary<string, string>
+        {
+            { "pk", id_list }
+        };
         var data = new FormUrlEncodedContent(POSTData);
         //POST to server
         var response = await client.PostAsync(url, data);
@@ -222,11 +233,9 @@ public class ChatsMenuController : MonoBehaviour
         return null;
     }
     public void CloseChatsMenuScreen(){
-        ChatsMenuCanvas.SetActive(false);
+        ChatsMenuCanvas.GetComponent<Canvas>().enabled=false;
     }
     
-     
-
 
     public GameObject GetChatScreen(){
         return this.ChatScreen;
@@ -239,10 +248,56 @@ public class ChatsMenuController : MonoBehaviour
         return this.chatInput;
     }
 
-    public void StartNewChat(Post post){
-        Debug.Log("starting chat on post:" + post.pk);
-        DatabaseController.CreateNewChat(Int32.Parse(post.pk),post.author);
-        CreatingNewChat=true;
-        OpenChatsMenuScreen();
+    public void StartNewChat(int post_id,int post_user_id, bool open_chat_screen){
+        Debug.Log("starting chat on post:" + post_id.ToString());
+        DatabaseController.CreateNewChat(post_id,post_user_id);
+        if (open_chat_screen){
+            CreatingNewChat=true;
+            OpenChatsMenuScreen(false);
+        }
+        
+    }
+
+    public Chat GetChatByPost(int post_id){
+        for(int i=0;i<chats.Count;i++){
+            if (chats[i].GetPostID()==post_id){
+                return chats[i];
+            }
+        }
+        return null;
+    }
+
+    public ChatController GetChatController(Chat chat){
+        for(int i=0;i<chatControllers.Count;i++){
+            if (chatControllers[i].GetChat()==chat){
+                return chatControllers[i];
+            }
+        }
+        return null;
+    }
+
+    public void PushMessage(Dictionary<string,string> message_data){
+        messageQueue.Enqueue(message_data);
+        //TODO: add notification for new message
+        Debug.Log("pushed message into queue; total: " + messageQueue.Count.ToString());
+    }
+
+    public void ackMessage(Dictionary<string,string> data,bool read){
+        /*
+        handles updating the received/read field based on flag
+        for the message both in db and if the chat is currently open updated ChatController
+        */
+        Dictionary<string,int> db_dict= new Dictionary<string, int>
+        {
+            { "user", Int32.Parse(data["user"]) }, //set my user id
+            { "packet_id", Int32.Parse(data["packet_id"]) }
+        };
+        int chat_id = DatabaseController.ackMessage(db_dict,read);
+        foreach(ChatController chat in chatControllers){
+            if (chat.GetChat().get_id()==chat_id){
+                chat.ackMessage(Int32.Parse(data["packet_id"]),read);
+            }
+        }
+
     }
 }

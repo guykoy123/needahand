@@ -9,6 +9,7 @@ using System.Threading;
 using System.Resources;
 using System.Threading.Tasks;
 using System.Text;
+using System.Linq.Expressions;
 // websocket controller
 public class WSController : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class WSController : MonoBehaviour
     ClientWebSocket ws = new ClientWebSocket();
     Task<bool> connect_task;
     Task<Dictionary<string,string>> receive_task;
-
+    public ChatsMenuController chatMenu;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,7 +28,7 @@ public class WSController : MonoBehaviour
     }
 
     // Update is called once per frame
-    async void Update()
+    void Update()
     {
         if (AppData.token!=null && connect_task==null){ // runs once to setup connection
 
@@ -42,23 +43,82 @@ public class WSController : MonoBehaviour
         }
         if (connected_flag){ //after setup is complete
             if (receive_task.IsCompleted){ //if receive data handle it
-                
-                // Debug.Log("received: " + receive_task.Result.ToString());
+                // try{
+                Dictionary<string,string> data = receive_task.Result;
+                receive_task=null;
                 receive_task=receive(); //restart listening
+
+                if (data["type"]=="message"){
+                    // new Task(() => { chatMenu.incoming_message_handler(data);}).Start();
+                    incoming_message_handler(data);
+                }
+                // }
+                // catch (Exception e){
+                //     Debug.Log("receive: no type key in data dict");
+                //     Debug.Log(e);
+                // }
+               
+
+                // Debug.Log("received: " + receive_task.Result.ToString());
+                
             }
         }
     }
+    public void incoming_message_handler(Dictionary<string,string> message_data){
+    /*
+    handles incoming messages 
+    if a chat for that post already exists:
+        try to get the chat controller and set a new message
+            if can't get chatController just push message into queue to be sent to the controller once it's open 
+    if no chat exist in the db:
+        create a new chat in db and push message into the queue
+    */
+        if (message_data["type"]=="message"){
+            if(DatabaseController.DoesChatExist(Int32.Parse(message_data["post"]))){
+                Chat chat = chatMenu.GetChatByPost(Int32.Parse(message_data["post"]));
+                if (chat!=null){ //chat exists and is loaded in ChatsMenuController
+                    ChatController controller = chatMenu.GetChatController(chat);
+                    DateTime time_sent = DateTime.ParseExact(message_data["time_sent"], "yyyy-MM-dd HH:mm",System.Globalization.CultureInfo.InvariantCulture);
+                    controller.ReceiveMessage(message_data["contents"],time_sent,Int32.Parse(message_data["packet_id"]));
+                }
+                else{ //chat exists but isn't loaded in ChatsMenuController
+                    // this.OpenChatsMenuScreen(true);
+                    chatMenu.PushMessage(message_data);
+                    Debug.Log("received message for a chat in DB but ChatMenuController doesn't have it");
+                }
+            }
+            else{ //chat doesn't exist 
+                chatMenu.StartNewChat(Int32.Parse(message_data["post"]),Int32.Parse(message_data["from"]),false);
+                chatMenu.PushMessage(message_data);
+                
+            }
+            //send acknowledge of message
+            Dictionary<string,string> ack_data= new Dictionary<string, string>
+            {
+                { "type", "ack" },
+                { "user", message_data["from"] },
+                { "packet_id", message_data["packet_id"] }
+            };
+            send(ack_data);
+        }
 
+        else if (message_data["type"]=="ack"){
+            chatMenu.ackMessage(message_data,false);
+        }
+        else if(message_data["type"]=="read_ack"){
+            chatMenu.ackMessage(message_data,true);
+        }
+        
+    }
     async Task<bool> Connect(){
         /*
         sets up the websocket with the users token in the header
         then connects to server
-        TODO: check if can remove cookie
         TODO: handle event of failed connection
         */
         ws.Options.SetRequestHeader("token",AppData.token.get());
-        ws.Options.Cookies = new CookieContainer();
-        ws.Options.Cookies.Add(uri,new Cookie("token",AppData.token.get()));
+        // ws.Options.Cookies = new CookieContainer();
+        // ws.Options.Cookies.Add(uri,new Cookie("token",AppData.token.get()));
         ws.Options.KeepAliveInterval = TimeSpan.Zero; // keep ws open forever
         try{
             await ws.ConnectAsync(uri,CancellationToken.None);
@@ -93,5 +153,29 @@ public class WSController : MonoBehaviour
         await ws.SendAsync(new ArraySegment<byte>(buffer),WebSocketMessageType.Text,true,CancellationToken.None);
     }
 
-    
+    public async Task read_ackMessage(Message msg){
+        //send acknowledge of message
+        Dictionary<string,string> ack_data= new Dictionary<string, string>
+        {
+            { "type", "read_ack" },
+            { "user", msg.GetAuthor().pk.ToString() },
+            { "packet_id", msg.GetSN().ToString() }
+        };
+        send(ack_data);
+    }
+
+    public async Task sendMessage(Message msg,int target_user_id,int post_id){
+        Dictionary<string,string> data= new Dictionary<string, string>
+        {
+            { "type", "message" },
+            { "user", target_user_id.ToString() },
+            { "contents", msg.GetText() },
+            { "post", post_id.ToString() },
+            { "time_sent", msg.GetTimeSent().ToString("yyyy-MM-dd HH:mm") },
+            { "packet_id", msg.GetSN().ToString() }
+        };
+        send(data);
+
+
+    }
 }

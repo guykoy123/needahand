@@ -44,14 +44,19 @@ public class AppManager : MonoBehaviour
     void Start()
     {
         AppData.Setup();
-        string path = Application.persistentDataPath; //change for production, needs to read token from AppData
-        AppData.token = new AuthToken(File.ReadAllText(Application.persistentDataPath + "/token.auth"));
+        // string path = Application.persistentDataPath; //change for production, needs to read token from AppData
+        
         Debug.Log("AppManager: user token: " + AppData.token.get());
         client.BaseAddress = new System.Uri(AppData.APIaddress);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", AppData.token.get());
         foreach(GameObject screen in GameObject.FindGameObjectsWithTag("Screen")){
             screen.SetActive(false);
         }
+        foreach(GameObject chat_screen in GameObject.FindGameObjectsWithTag("Chat")){
+            chat_screen.SetActive(true);
+            chat_screen.GetComponent<Canvas>().enabled=false;
+        }
+
         homePanel.SetActive(true);
 
         homeSelected.SetActive(true);
@@ -65,6 +70,10 @@ public class AppManager : MonoBehaviour
         user_info_task = get_user_info();
 
         DatabaseController.Start();
+    }
+
+    void OnApplicationQuit(){
+        AppData.save();
     }
     async Task<bool> get_area_names()
     {
