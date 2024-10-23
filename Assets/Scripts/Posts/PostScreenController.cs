@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using UnityEngine.UI;
+using System;
 public class PostScreenController : MonoBehaviour
 {
     Post post;
@@ -89,7 +90,7 @@ public class PostScreenController : MonoBehaviour
             MyButtons.SetActive(false);
             OthersButtons.SetActive(true);
             Button ContactButton = OthersButtons.GetComponentInChildren<Button>();
-            ContactButton.onClick.AddListener(delegate { ChatMenu.StartNewChat(this.post); });
+            ContactButton.onClick.AddListener(delegate { ChatMenu.StartNewChat(Int32.Parse(this.post.pk),this.post.author,true); });
         }
     }
 

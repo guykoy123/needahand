@@ -146,12 +146,14 @@ public class EditController : MonoBehaviour
     async Task<bool> publish(string title, string content, string pType, string area_code)
     {
         var url = "api/edit_post";
-        Dictionary<string, string> postData = new Dictionary<string, string>();
-        postData.Add("post_type", pType);
-        postData.Add("area", area_code);
-        postData.Add("title", title);
-        postData.Add("content", content);
-        postData.Add("pk", post.pk);
+        Dictionary<string, string> postData = new Dictionary<string, string>
+        {
+            { "post_type", pType },
+            { "area", area_code },
+            { "title", title },
+            { "content", content },
+            { "pk", post.pk }
+        };
         post.post_type = pType;
         post.area = area_code;
         post.area_name = AppData.areaNamesDict[area_code];

@@ -102,11 +102,13 @@ public class GiveController : MonoBehaviour
     async Task<List<Post>> get_posts(string area_code)
     {
         var url = "api/recent_posts";
-        Dictionary<string, string> postData = new Dictionary<string, string>();
-        postData.Add("post_type", "gv");
-        postData.Add("area", area_code);
-        postData.Add("count", count.ToString());
-        postData.Add("offset", offset.ToString());
+        Dictionary<string, string> postData = new Dictionary<string, string>
+        {
+            { "post_type", "gv" },
+            { "area", area_code },
+            { "count", count.ToString() },
+            { "offset", offset.ToString() }
+        };
         var content = new FormUrlEncodedContent(postData);
         var response = await client.PostAsync(url, content);
         if (response.IsSuccessStatusCode)

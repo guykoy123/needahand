@@ -117,11 +117,13 @@ public class PublishController : MonoBehaviour
     async Task<bool> publish(string title, string content, string pType, string area_code)
     {
         var url = "api/publish_post";
-        Dictionary<string, string> postData = new Dictionary<string, string>();
-        postData.Add("post_type",pType);
-        postData.Add("area", area_code);
-        postData.Add("title", title);
-        postData.Add("content", content);
+        Dictionary<string, string> postData = new Dictionary<string, string>
+        {
+            { "post_type", pType },
+            { "area", area_code },
+            { "title", title },
+            { "content", content }
+        };
         var data = new FormUrlEncodedContent(postData);
         var response = await client.PostAsync(url, data);
         if (response.IsSuccessStatusCode)
