@@ -7,12 +7,13 @@ public class MessageController : MonoBehaviour
 {
     public TMP_Text messageText; 
     public TMP_Text timeSentText;
+    public GameObject read_checkmark;
     Image messageBubble;
     Message message;
+
     // Start is called before the first frame update
     void Start()
     {
-
     }
 
     // Update is called once per frame
@@ -22,19 +23,24 @@ public class MessageController : MonoBehaviour
     }
     public void SetMessage(Message msg){
         this.message=msg;
+        read_checkmark.SetActive(false);
         // messageText = transform.GetComponentInChildren<TMP_Text>();
-        messageBubble = transform.GetComponent<Image>();
+        messageBubble = transform.gameObject.GetComponent<Image>();
         if (AppData.user.pk == message.GetAuthor().pk){
-            messageBubble.color = new Color(95,255,166); //my message color
+            messageBubble.color = new Color32(95,255,166,100); //my message color
+            if (msg.GetSeen()){
+                read_checkmark.SetActive(true);
+            }
         }
         else{
-            messageBubble.color = new Color(167,255,255); //other person message color
+            messageBubble.color = new Color32(167,255,255,100); //other person message color
         }
         messageText.text=message.GetText();
         messageText.ForceMeshUpdate();
 
         timeSentText.text="sent: " + message.GetTimeSent().ToString("yyyy-MM-dd HH:mm");
         timeSentText.ForceMeshUpdate();
+        
         // Bounds textBounds = messageText.textBounds;
 
         // float size = messageBubble.GetComponent<Renderer> ().bounds.size.y;
@@ -51,7 +57,8 @@ public class MessageController : MonoBehaviour
     }
     public void UpdateSeen(){
         this.message.UpdateSeen();
-        //TODO: add visual que for own messages
+        read_checkmark.SetActive(true);
+        
         
     }
     public int GetAuthorID(){

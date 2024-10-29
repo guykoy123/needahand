@@ -2817,7 +2817,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -1.3997, y: 404.43958}
+  m_AnchoredPosition: {x: -1.3997, y: 404.43997}
   m_SizeDelta: {x: -95.64459, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &306188029
@@ -17832,7 +17832,7 @@ GameObject:
   - component: {fileID: 1546852990}
   m_Layer: 5
   m_Name: Chats Menu Screen
-  m_TagString: Untagged
+  m_TagString: ChatMenu
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -19841,7 +19841,7 @@ RectTransform:
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -290, y: 0}
   m_SizeDelta: {x: 11.3362, y: -17}
-  m_Pivot: {x: 1, y: 1}
+  m_Pivot: {x: 1, y: 0}
 --- !u!114 &1762658034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19884,9 +19884,9 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 2106622201}
   m_HandleRect: {fileID: 2106622200}
-  m_Direction: 2
-  m_Value: 1
-  m_Size: 0.9986236
+  m_Direction: 3
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
